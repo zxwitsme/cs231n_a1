@@ -23,6 +23,7 @@ def softmax_loss_naive(W, X, y, reg):
   # Initialize the loss and gradient to zero.
   loss = 0.0
   dW = np.zeros_like(W)
+  dW1 = np.zeros_like(W)
 
   #############################################################################
   # TODO: Compute the softmax loss and its gradient using explicit loops.     #
@@ -30,7 +31,23 @@ def softmax_loss_naive(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  num_class = W.shape[1]
+  num_train, dim = X.shape
+  s = X.dot(W)
+  s_max = np.reshape(np.max(s,axis=1),(num_train,1))
+  p = np.exp(s-s_max)/np.sum(np.exp(s-s_max),axis=1,keepdims=True)
+  y_true = np.zeros_like(p)
+  y_true[np.arange(num_train), y] = 1.0
+  for i in xrange(num_train):
+    for j in xrange(num_class):
+      loss += -(y_true[i,j]*np.log(p[i,j]))
+      dW1[:, j] = -(y_true[i,j]-p[i,j])*X[i,:]
+    dW += dW1
+  loss /= num_train
+  loss += 0.5*reg*np.sum(W*W)
+  dW /= num_train
+  dW += reg*W
+
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
@@ -54,7 +71,16 @@ def softmax_loss_vectorized(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  num_train, dim = X.shape
+
+  s = X.dot(W)
+  s = X.dot(W)
+  s_max = np.reshape(np.max(s,axis=1),(num_train,1))
+  p = np.exp(s-s_max)/np.sum(np.exp(s-s_max),axis=1,keepdims=True)
+  y_true = np.zeros_like(p)
+  y_true[np.arange(num_train), y] = 1.0
+  loss += -np.sum(y_true*np.log(p))/num_train+0.5*reg*np.sum(W*W)
+  dW += -np.dot(X.T, y_true-p)/num_train+reg*W
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
